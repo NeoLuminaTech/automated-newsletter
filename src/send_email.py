@@ -18,6 +18,14 @@ def send_email():
 
     msg.attach(MIMEText(html_content, "html"))
 
+    if not all([EMAIL_USER, EMAIL_PASS, TO_EMAIL]):
+        print("⚠️  Missing email credentials (EMAIL_USER, EMAIL_PASS, TO_EMAIL).")
+        print("✅ Simulating email send...")
+        print(f"Subject: {msg['Subject']}")
+        print(f"To: {msg['To']}")
+        print("Email content generated successfully in 'newsletter_output.html'")
+        return
+
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(EMAIL_USER, EMAIL_PASS)
         server.send_message(msg)
