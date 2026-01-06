@@ -34,11 +34,11 @@ def build_html():
     if not top_articles:
         raise RuntimeError("No articles remained after deduplication and ranking.")
 
-    # 3. Summarize
-    print("Step 3: Generating AI Summaries...")
-    for article in top_articles:
-        # Failure here stops the pipeline (Fail-Fast)
-        article["ai_summary"] = summarize(article)
+    # 3. Summarize (DISABLED per user request)
+    # print("Step 3: Generating AI Summaries...")
+    # for article in top_articles:
+    #     # Failure here stops the pipeline (Fail-Fast)
+    #     article["ai_summary"] = summarize(article)
 
     # 4. Render
     print("Step 4: Rendering HTML...")
