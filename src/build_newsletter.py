@@ -24,23 +24,24 @@ def build_html():
 
 from send_email import send_email
 import traceback
-
-# ... (rest of imports are fine, checks below)
+import os
 
 def run():
     try:
         print("🚀 Starting newsletter generation...")
         html_content = build_html()
-        send_email("📰 Weekly Logistics Newsletter", html_content)
-        print("✅ Newsletter generated and sent successfully.")
+
+        if os.getenv("NEWS_API_KEY"):
+            send_email("📰 Weekly Logistics Newsletter", html_content)
+            print("✅ Newsletter generated and sent successfully.")
+        else:
+            print("⚠️ NEWS_API_KEY missing (using mock data). Skipping email send.")
+            print("✅ Newsletter generated locally: newsletter_output.html")
+
     except Exception as e:
         error_msg = f"❌ Newsletter Generation Failed: {str(e)}"
         print(error_msg)
-        trace = traceback.format_exc()
-        send_email(
-            "⚠️ Newsletter Generation Failed",
-            f"<h1>Generation Failed</h1><p>{error_msg}</p><pre>{trace}</pre>"
-        )
+        print(traceback.format_exc())
 
 if __name__ == "__main__":
     run()
