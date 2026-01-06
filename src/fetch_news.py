@@ -1,40 +1,24 @@
 import requests
 import os
 import time
-from config import LANGUAGE
+from config import LANGUAGE, validate_config
 
-API_KEY = os.getenv("NEWS_API_KEY")
-QUERY = os.getenv("SEARCH_QUERY") or (
-    "Supply Chain OR Logistics OR Freight OR Cargo OR Warehouse "
-    "OR Sustainability OR Green Logistics OR Logistics Technology"
-)
+# Ensure config is valid before proceeding (this runs at import time or first call)
+# Better to call validate_config() inside the function or main execution to control when it fails.
 
 def fetch_news():
+    """
+    Fetches news articles from GNews API.
+    Raises exceptions on failure. No mock data.
+    """
+    API_KEY = os.getenv("NEWS_API_KEY")
     if not API_KEY:
-        print("⚠️ No NEWS_API_KEY found. Using mock data.")
-        return [
-            {
-                "title": "Mock News: Supply Chain AI Revolution",
-                "description": "AI is transforming logistics with predictive analytics.",
-                "url": "https://example.com/ai-logistics",
-                "image": "https://via.placeholder.com/600x300",
-                "source": {"name": "Tech Logistics Daily"}
-            },
-            {
-                "title": "Mock News: Green Freight Initiatives",
-                "description": "New regulations push for carbon-neutral shipping.",
-                "url": "https://example.com/green-freight",
-                "image": "https://via.placeholder.com/600x300",
-                "source": {"name": "EcoTransport"}
-            },
-             {
-                "title": "Mock News: Warehouse Robotics",
-                "description": "Robots are taking over picking and packing.",
-                "url": "https://example.com/warehouse-bots",
-                "image": "https://via.placeholder.com/600x300",
-                "source": {"name": "AutoWarehouse"}
-            }
-        ]
+        raise EnvironmentError("NEWS_API_KEY is missing from environment variables.")
+
+    QUERY = os.getenv("SEARCH_QUERY") or (
+        "Supply Chain OR Logistics OR Freight OR Cargo OR Warehouse "
+        "OR Sustainability OR Green Logistics OR Logistics Technology"
+    )
 
     URL = (
         "https://gnews.io/api/v4/search"
@@ -45,23 +29,44 @@ def fetch_news():
         "User-Agent": "Mozilla/5.0 (NewsletterBot/1.0)"
     }
 
+    print(f"🌍 Fetching news for query: '{QUERY}'...")
+
     for attempt in range(3):
         try:
             response = requests.get(URL, headers=HEADERS, timeout=10)
             response.raise_for_status()
-            return response.json().get("articles", [])
+            articles = response.json().get("articles", [])
+            
+            if not articles:
+                 print("⚠️ API returned 0 articles.")
+                 # Decide if 0 articles is an error. 
+                 # For a newsletter system, 0 articles might be valid but rare. 
+                 # However, usually we want to know if the search is broken.
+                 # Let's return empty list but NOT mock.
+                 return []
+            
+            print(f"✅ Fetched {len(articles)} articles.")
+            return articles
+
         except requests.exceptions.HTTPError as e:
             if response.status_code == 429:
-                print("Rate limited. Sleeping before retry...")
-                time.sleep(10 * (attempt + 1))
+                print(f"⏳ Rate limited (Attempt {attempt+1}/3). Sleeping 10s...")
+                time.sleep(10)
             else:
-                print(f"Error fetching news: {e}")
-                return []
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            return []
+                # Re-raise non-retriable HTTP errors immediately
+                raise RuntimeError(f"News API HTTP Error: {e}") from e
+        except requests.exceptions.RequestException as e:
+            # Network errors, timeouts, etc.
+            if attempt == 2:
+               raise RuntimeError(f"News API Network Error after 3 attempts: {e}") from e
+            print(f"⚠️ Network error (Attempt {attempt+1}/3): {e}")
+            time.sleep(2)
     
-    return []
+    raise RuntimeError("Failed to fetch news after max retries.")
 
 if __name__ == "__main__":
-    print(len(fetch_news()))
+    try:
+        articles = fetch_news()
+        print(f"Fetched {len(articles)} articles")
+    except Exception as e:
+        print(f"❌ Test Failed: {e}")
