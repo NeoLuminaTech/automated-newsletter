@@ -1,0 +1,2 @@
+# automated-newsletter
+Automated Newsletter
