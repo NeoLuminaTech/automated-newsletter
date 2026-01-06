@@ -8,15 +8,15 @@ EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASS = os.getenv("EMAIL_PASS")
 TO_EMAIL = os.getenv("TO_EMAIL")
 
-def _send_smtp(subject, html_content):
+def _send_smtp(subject, html_content, recipient):
     """Internal helper to handle the actual SMTP transaction."""
-    if not all([EMAIL_USER, EMAIL_PASS, TO_EMAIL]):
-        raise EnvironmentError("Missing required email environment variables (EMAIL_USER, EMAIL_PASS, TO_EMAIL).")
+    if not all([EMAIL_USER, EMAIL_PASS, recipient]):
+        raise EnvironmentError("Missing required email environment variables or recipient.")
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"] = EMAIL_USER
-    msg["To"] = TO_EMAIL
+    msg["To"] = recipient
 
     msg.attach(MIMEText(html_content, "html"))
 
@@ -25,19 +25,18 @@ def _send_smtp(subject, html_content):
         server.send_message(msg)
 
 def send_email(subject, html_content):
-    """Sends the newsletter email. Raises exceptions on failure."""
+    """Sends the newsletter email to the subscriber list (TO_EMAIL)."""
     try:
-        _send_smtp(subject, html_content)
-        print(f"✅ Email sent: {subject}")
+        # Newsletter goes to the configured subscriber/list
+        _send_smtp(subject, html_content, TO_EMAIL)
+        print(f"✅ Email sent: {subject} to {TO_EMAIL}")
     except Exception as e:
         print(f"❌ Failed to send newsletter email: {e}")
         raise  # Re-raise to ensure the main process knows it failed
 
 def notify_failure(stage: str, error_detail: str):
     """
-    Sends an error notification email to the user.
-    This function swallows its own exceptions to prevent infinite loops,
-    but logs them to the console.
+    Sends an error notification email ONLY to the admin (EMAIL_USER).
     """
     subject = f"❌ Automated Newsletter Failed: {stage}"
     
@@ -59,10 +58,12 @@ def notify_failure(stage: str, error_detail: str):
     </html>
     """
 
-    print(f"⚠️ Attempting to send failure notification for stage: {stage}")
+    print(f"⚠️ Attempting to send failure notification to ADMIN ({EMAIL_USER}) for stage: {stage}")
     try:
-        _send_smtp(subject, html_body)
-        print("✅ Failure notification email sent.")
+        # Error notification sends to SELF (EMAIL_USER) or could be a separate ADMIN_EMAIL if configured.
+        # Request asked to send to EMAIL_USER id.
+        _send_smtp(subject, html_body, EMAIL_USER)
+        print("✅ Failure notification email sent to admin.")
     except Exception as e:
         print(f"CRITICAL: Failed to send failure notification email!")
         print(traceback.format_exc())
