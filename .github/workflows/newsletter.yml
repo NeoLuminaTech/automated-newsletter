@@ -29,4 +29,4 @@ jobs:
         EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
         TO_EMAIL: ${{ secrets.TO_EMAIL }}
       run: |
-        python src/send_email.py
+        python src/build_newsletter.py
