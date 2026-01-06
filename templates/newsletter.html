@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weekly Newsletter</title>
 </head>
 
@@ -13,23 +14,27 @@
                 <table width="600" style="background:#ffffff; padding:20px; border-radius:6px;">
                     <tr>
                         <td>
-                            <h2 style="color:#333;">📰 Weekly Top News</h2>
-                            <p style="color:#666;">Curated top stories this week</p>
+                            <h2 style="color:#333;">📰 Weekly Logistics Update</h2>
+                            <p style="color:#666;">Top stories in Supply Chain & Logistics</p>
                             <hr>
 
                             {% for article in articles %}
                             <div style="margin-bottom:25px;">
                                 {% if article.image %}
-                                <img src="{{ article.image }}" alt="" style="width:100%; border-radius:4px;">
+                                <img src="{{ article.image }}" alt="Article Image"
+                                    style="width:100%;border-radius:4px;">
                                 {% endif %}
 
-                                <h3 style="margin:10px 0;">
-                                    <a href="{{ article.url }}" style="color:#1a73e8; text-decoration:none;">
+                                <h3>
+                                    <a href="{{ article.url }}" style="color:#1a73e8;">
                                         {{ article.title }}
                                     </a>
                                 </h3>
 
-                                <p style="color:#555;">{{ article.description }}</p>
+                                <p><strong>AI Summary:</strong></p>
+                                <div style="background:#f7f7f7;padding:10px;border-radius:4px;">
+                                    {{ article.ai_summary | safe }}
+                                </div>
 
                                 <small style="color:#999;">
                                     Source: {{ article.source.name }}
@@ -39,7 +44,7 @@
                             {% endfor %}
 
                             <p style="font-size:12px; color:#999;">
-                                You are receiving this email because you subscribed.
+                                You are receiving this because you subscribed to logistics updates.
                             </p>
                         </td>
                     </tr>
