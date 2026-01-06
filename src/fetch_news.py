@@ -1,8 +1,13 @@
 import requests
 import os
-from config import TOPICS, LANGUAGE, MAX_ARTICLES_PER_TOPIC
+import time
+from config import LANGUAGE
 
 API_KEY = os.getenv("NEWS_API_KEY")
+QUERY = os.getenv("SEARCH_QUERY") or (
+    "Supply Chain OR Logistics OR Freight OR Cargo OR Warehouse "
+    "OR Sustainability OR Green Logistics OR Logistics Technology"
+)
 
 def fetch_news():
     if not API_KEY:
@@ -31,21 +36,32 @@ def fetch_news():
             }
         ]
 
-    all_articles = []
+    URL = (
+        "https://gnews.io/api/v4/search"
+        f"?q={QUERY}&lang={LANGUAGE}&max=20&token={API_KEY}"
+    )
 
-    for topic in TOPICS:
-        url = (
-            "https://gnews.io/api/v4/search"
-            f"?q={topic}&lang={LANGUAGE}"
-            f"&max={MAX_ARTICLES_PER_TOPIC}&token={API_KEY}"
-        )
+    HEADERS = {
+        "User-Agent": "Mozilla/5.0 (NewsletterBot/1.0)"
+    }
 
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-        all_articles.extend(data.get("articles", []))
-
-    return all_articles
+    for attempt in range(3):
+        try:
+            response = requests.get(URL, headers=HEADERS, timeout=10)
+            response.raise_for_status()
+            return response.json().get("articles", [])
+        except requests.exceptions.HTTPError as e:
+            if response.status_code == 429:
+                print("Rate limited. Sleeping before retry...")
+                time.sleep(10 * (attempt + 1))
+            else:
+                print(f"Error fetching news: {e}")
+                return []
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return []
+    
+    return []
 
 if __name__ == "__main__":
     print(len(fetch_news()))

@@ -1,12 +1,7 @@
-TOPICS = [
-    "Supply Chain Management",
-    "Logistics Industry",
-    "Freight and Cargo Management",
-    "Warehouse Operations",
-    "Green Logistics Sustainability",
-    "Logistics Technology Innovation"
-]
+SEARCH_QUERY = (
+    "Supply Chain OR Logistics OR Freight OR Cargo OR Warehouse "
+    "OR Sustainability OR Green Logistics OR Logistics Technology"
+)
 
 LANGUAGE = "en"
-MAX_ARTICLES_PER_TOPIC = 5
 FINAL_TOP_ARTICLES = 10
