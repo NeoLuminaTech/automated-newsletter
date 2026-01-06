@@ -21,5 +21,26 @@ def build_html():
 
     return html
 
+
+from send_email import send_email
+import traceback
+
+# ... (rest of imports are fine, checks below)
+
+def run():
+    try:
+        print("🚀 Starting newsletter generation...")
+        html_content = build_html()
+        send_email("📰 Weekly Logistics Newsletter", html_content)
+        print("✅ Newsletter generated and sent successfully.")
+    except Exception as e:
+        error_msg = f"❌ Newsletter Generation Failed: {str(e)}"
+        print(error_msg)
+        trace = traceback.format_exc()
+        send_email(
+            "⚠️ Newsletter Generation Failed",
+            f"<h1>Generation Failed</h1><p>{error_msg}</p><pre>{trace}</pre>"
+        )
+
 if __name__ == "__main__":
-    build_html()
+    run()
