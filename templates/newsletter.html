@@ -33,7 +33,11 @@
 
                                 <p><strong>Summary:</strong></p>
                                 <div style="background:#f7f7f7;padding:10px;border-radius:4px;">
+                                    {% if article.ai_summary %}
+                                    {{ article.ai_summary | replace('\n', '<br>') | safe }}
+                                    {% else %}
                                     {{ article.description }}
+                                    {% endif %}
                                 </div>
 
                                 <small style="color:#999;">
